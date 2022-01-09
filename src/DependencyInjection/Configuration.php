@@ -12,6 +12,16 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder('devl0pr_request_manager');
 
+        $treeBuilder->getRootNode()
+            ->children()
+                ->arrayNode('smart_problem')->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('pattern')->defaultNull()->example('^/api')->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+
 //        $treeBuilder->getRootNode()
 //            ->children()
 //                ->arrayNode('twitter')

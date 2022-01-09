@@ -18,6 +18,12 @@ class Devl0prRequestManagerExtension extends Extension
         );
         $loader->load('services.xml');
 
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $configs);
+
+        $definition = $container->getDefinition('devl0pr_request_manager.event_listener.smart_problem_exception_listener');
+        $definition->replaceArgument(1, $config['smart_problem']['pattern']);
+
 //        $configuration = new Configuration();
 
 //        $config = $this->processConfiguration($configuration, $configs);

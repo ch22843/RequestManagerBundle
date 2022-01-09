@@ -2,12 +2,27 @@
 <container xmlns="http://symfony.com/schema/dic/services"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services
-        https://symfony.com/schema/dic/services/services-1.0.xsd">
-
+        http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-<!--        <service id="acme.social.twitter_client" class="Acme\SocialBundle\TwitterClient">-->
-<!--            <argument></argument> &lt;!&ndash; will be filled in with client_id dynamically &ndash;&gt;-->
-<!--            <argument></argument> &lt;!&ndash; will be filled in with client_secret dynamically &ndash;&gt;-->
-<!--        </service>-->
+        <service id="devl0pr_request_manager.request.smart_request" class="Devl0pr\RequestManagerBundle\Request\SmartRequest"
+                 public="false">
+            <argument type="service" id="validator"/>
+            <argument type="service" id="property_accessor"/>
+            <argument type="service" id="request_stack"/>
+            <argument>%kernel.debug%</argument>
+        </service>
+
+        <service id="Devl0pr\RequestManagerBundle\Request\SmartRequest" alias="devl0pr_request_manager.request.smart_request"
+                 public="false"/>
+
+        <service id="devl0pr_request_manager.event_listener.smart_problem_exception_listener"
+                 class="Devl0pr\RequestManagerBundle\EventListener\SmartProblemExceptionListener" public="false">
+            <argument>%kernel.debug%</argument>
+            <argument></argument> <!-- will be filled in with pattern dynamically -->
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="Devl0pr\RequestManagerBundle\EventListener\SmartProblemExceptionListener"
+                 alias="devl0pr_request_manager.event_listener.smart_problem_exception_listener" public="false"/>
     </services>
 </container>
