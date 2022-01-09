@@ -1,0 +1,31 @@
+{
+  "name": "devl0pr/request-manager-bundle",
+  "description": "Request Manager",
+  "type": "symfony-bundle",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Cavid Huseynov",
+      "email": "dev22843@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Devl0pr\\RequestManagerBundle\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Devl0pr\\RequestManagerBundle\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "symfony/http-kernel": "^5.4",
+    "symfony/config": "^5.4",
+    "symfony/dependency-injection": "^5.4",
+    "symfony/http-foundation": "^5.4",
+    "symfony/event-dispatcher": "^5.4",
+    "symfony/validator": "^5.4",
+    "symfony/property-access": "^5.4"
+  }
+}
