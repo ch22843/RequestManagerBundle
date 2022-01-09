@@ -10,7 +10,7 @@
  * @license http://opensource.org/licenses/MIT MIT
  */
 
-namespace Devl0pr\RequestManager\Request;
+namespace Devl0pr\RequestManagerBundle\Request;
 
 /**
  * @author Emil Manafov <mnf.emil@gmail.com>

@@ -1,7 +1,6 @@
 <?php
 
-
-namespace Devl0pr\RequestManager;
+namespace Devl0pr\RequestManagerBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

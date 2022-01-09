@@ -10,7 +10,7 @@
  * @license http://opensource.org/licenses/MIT MIT
  */
 
-namespace Devl0pr\RequestManager\Problem;
+namespace Devl0pr\RequestManagerBundle\Problem;
 
 use Symfony\Component\HttpFoundation\Response;
 

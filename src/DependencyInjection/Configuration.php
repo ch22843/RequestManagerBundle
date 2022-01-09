@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Devl0pr\RequestManager\DependencyInjection;
+namespace Devl0pr\RequestManagerBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;

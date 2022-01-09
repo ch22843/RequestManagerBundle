@@ -10,11 +10,11 @@
  * @license http://opensource.org/licenses/MIT MIT
  */
 
-namespace Devl0pr\RequestManager\EventListener;
+namespace Devl0pr\RequestManagerBundle\EventListener;
 
 
-use Devl0pr\RequestManager\Exception\SmartProblemException;
-use Devl0pr\RequestManager\Problem\SmartProblem;
+use Devl0pr\RequestManagerBundle\Exception\SmartProblemException;
+use Devl0pr\RequestManagerBundle\Problem\SmartProblem;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;

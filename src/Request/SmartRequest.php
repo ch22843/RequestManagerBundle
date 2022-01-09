@@ -10,10 +10,10 @@
  * @license http://opensource.org/licenses/MIT MIT
  */
 
-namespace Devl0pr\RequestManager\Request;
+namespace Devl0pr\RequestManagerBundle\Request;
 
-use Devl0pr\RequestManager\Exception\SmartProblemException;
-use Devl0pr\RequestManager\Problem\SmartProblem;
+use Devl0pr\RequestManagerBundle\Exception\SmartProblemException;
+use Devl0pr\RequestManagerBundle\Problem\SmartProblem;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
