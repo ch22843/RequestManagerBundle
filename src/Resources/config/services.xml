@@ -18,7 +18,6 @@
         <service id="devl0pr_request_manager.event_listener.smart_problem_exception_listener"
                  class="Devl0pr\RequestManagerBundle\EventListener\SmartProblemExceptionListener" public="false">
             <argument>%kernel.debug%</argument>
-            <argument></argument> <!-- will be filled in with pattern dynamically -->
             <tag name="kernel.event_subscriber"/>
         </service>
 
