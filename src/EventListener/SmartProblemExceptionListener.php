@@ -12,7 +12,6 @@
 
 namespace Devl0pr\RequestManagerBundle\EventListener;
 
-
 use Devl0pr\RequestManagerBundle\Exception\SmartProblemException;
 use Devl0pr\RequestManagerBundle\Problem\SmartProblem;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -28,24 +27,23 @@ class SmartProblemExceptionListener implements EventSubscriberInterface
 {
     private $debug;
 
-    private $pattern;
 
-    public function __construct($debug, $pattern)
+
+    public function __construct($debug)
     {
         $this->debug   = $debug;
-        $this->pattern = $pattern;
     }
 
     public function onKernelException(ExceptionEvent $event)
     {
         $request = $event->getRequest();
 
-        if (null === $this->pattern || !preg_match('{' . $this->pattern . '}', rawurldecode($request->getPathInfo()))) {
-            if (false === mb_strpos((string)$request->getPreferredFormat(), 'json') &&
-                false === mb_strpos((string)$request->getContentType(), 'json')) {
-                return;
-            }
-        }
+//        if (null === $this->pattern || !preg_match('{' . $this->pattern . '}', rawurldecode($request->getPathInfo()))) {
+//            if (false === mb_strpos((string)$request->getPreferredFormat(), 'json') &&
+//                false === mb_strpos((string)$request->getContentType(), 'json')) {
+//                return;
+//            }
+//        }
 
         $e = $event->getThrowable();
 

@@ -24,19 +24,19 @@ class SmartProblem
     /**
      * @var int
      */
-    private $statusCode;
+    private int $statusCode;
 
     /**
      * @var string|null
      */
-    private $type;
+    private ?string $type;
 
     /**
      * @var string
      */
     private $title;
 
-    private $extraData = [];
+    private array $extraData = [];
 
     public function __construct(int $statusCode, ?string $type = null, ?string $title = null)
     {

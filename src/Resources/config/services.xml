@@ -4,7 +4,7 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services
         http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="devl0pr_request_manager.request.smart_request" class="Devl0pr\RequestManagerBundle\Request\SmartRequest"
+        <service id="devl0pr_request_manager.request.request_manager" class="Devl0pr\RequestManagerBundle\Request\RequestManager"
                  public="false">
             <argument type="service" id="validator"/>
             <argument type="service" id="property_accessor"/>
@@ -12,7 +12,7 @@
             <argument>%kernel.debug%</argument>
         </service>
 
-        <service id="Devl0pr\RequestManagerBundle\Request\SmartRequest" alias="devl0pr_request_manager.request.smart_request"
+        <service id="Devl0pr\RequestManagerBundle\Request\RequestManager" alias="devl0pr_request_manager.request.request_manager"
                  public="false"/>
 
         <service id="devl0pr_request_manager.event_listener.smart_problem_exception_listener"

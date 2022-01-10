@@ -91,9 +91,9 @@ class RequestManager
      */
     public function validate(RequestRuleInterface $requestRule, bool $skipMissing = false): array
     {
-        $this->requestRule->onValidationStart($this);
-
         $this->requestRule = $requestRule;
+
+        $this->requestRule->onValidationStart($this);
 
         $validationMap  = $this->requestRule->getValidationMap();
         $requestContent = $this->requestContent;
