@@ -12,7 +12,6 @@
 
 namespace Devl0pr\RequestManagerBundle\Exception;
 
-
 use Devl0pr\RequestManagerBundle\Problem\SmartProblem;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -24,7 +23,7 @@ class SmartProblemException extends HttpException
     /**
      * @var SmartProblem
      */
-    private $smartProblem;
+    private SmartProblem $smartProblem;
 
     public function __construct(
         SmartProblem $smartProblem,

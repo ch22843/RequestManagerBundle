@@ -16,6 +16,7 @@ use Devl0pr\RequestManagerBundle\Exception\SmartProblemException;
 use Devl0pr\RequestManagerBundle\Problem\SmartProblem;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Validator\Constraint;
@@ -24,44 +25,45 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 /**
  * @author Emil Manafov <mnf.emil@gmail.com>
  * @author Cavid Huseynov <dev22843@gmail.com>
- * @author Shamsi Babakhanov <shamsi.b@list.ru>
  */
-class SmartRequest
+class RequestManager
 {
     /**
      * @var ValidatorInterface
      */
-    private $validator;
+    private ValidatorInterface $validator;
 
     /**
      * @var PropertyAccessorInterface
      */
-    private $propertyAccessor;
+    private PropertyAccessorInterface $propertyAccessor;
 
     /**
      * @var ?Request
      */
-    private $request;
+    private ?Request $request;
 
     /**
-     * @var ?SmartRequestRuleInterface
+     * @var ?RequestRuleInterface
      */
-    private $requestRule = null;
+    private ?RequestRuleInterface $requestRule = null;
 
-    private $isDebug;
+    private bool $isDebug;
 
-    private $requestContent = [];
+    private array $callbacks = [];
 
-    private $requestContentInitial = [];
+    private array $requestContent = [];
 
-    private $validationErrors = [];
+    private array $originalContent = [];
+
+    private array $validationErrors = [];
 
     /**
      * A bag to carry any necessary additional data
      *
      * @var array
      */
-    private $bag = [];
+    private array $bag = [];
 
     public function __construct(
         ValidatorInterface $validator,
@@ -69,26 +71,28 @@ class SmartRequest
         RequestStack $requestStack,
         bool $isDebug
     ) {
+        $this->isDebug          = $isDebug;
         $this->validator        = $validator;
         $this->propertyAccessor = $propertyAccessor;
         $this->request          = $requestStack->getCurrentRequest();
-        $this->requestContent   = $this->requestContentInitial = $this->parseRequestContent($this->request);
-        $this->isDebug          = $isDebug;
+        $this->requestContent   = $this->originalContent = $this->parseRequestContent($this->request);
     }
+
+
 
     /**
      * Validates request body content against defined constraints in the $requestRule.
-     * If all data is valid `process` method of the $requestRule and processors of every single field will be executed.
      *
-     *
-     * @param SmartRequestRuleInterface $requestRule Request rule to comply with
+     * @param RequestRuleInterface $requestRule Request rule to comply with
      * @param bool                      $skipMissing Skip missing fields in the Request body content instead of
      *                                               throwing an Exception
      *
      * @return array Request body content after all manipulations
      */
-    public function comply(SmartRequestRuleInterface $requestRule, bool $skipMissing = false): array
+    public function validate(RequestRuleInterface $requestRule, bool $skipMissing = false): array
     {
+        $this->requestRule->onValidationStart($this);
+
         $this->requestRule = $requestRule;
 
         $validationMap  = $this->requestRule->getValidationMap();
@@ -151,8 +155,7 @@ class SmartRequest
             throw new SmartProblemException($smartProblem);
         }
 
-        $this->runNormalizers();
-        $this->runProcessors();
+        $this->dispatchExtraValidationMethods();
 
         return $this->requestContent;
     }
@@ -166,7 +169,7 @@ class SmartRequest
      *
      * @return mixed|null Validated value from the Request
      */
-    public function validate(string $key, $constraints, $default = null)
+    public function validateManual(string $key, $constraints, $default = null)
     {
         $value = $this->request->get($key, $default);
 
@@ -208,19 +211,14 @@ class SmartRequest
         return $this->request;
     }
 
-    public function getRequestRule(): ?SmartRequestRuleInterface
-    {
-        return $this->requestRule;
-    }
-
     public function getRequestContent(): array
     {
         return $this->requestContent;
     }
 
-    public function getRequestContentInitial(): array
+    public function getOriginalContent(): array
     {
-        return $this->requestContentInitial;
+        return $this->originalContent;
     }
 
     public function getValidationErrors(): array
@@ -249,7 +247,7 @@ class SmartRequest
         return $this->bag;
     }
 
-    public function setBag(array $bag): SmartRequest
+    public function setBag(array $bag): RequestManager
     {
         $this->bag = $bag;
 
@@ -261,18 +259,41 @@ class SmartRequest
         return $this->validator;
     }
 
+    public function registerCallbackBeforeDispatch($fieldName, $callback)
+    {
+        if (is_callable($callback)) {
+            $this->callbacks[$fieldName] = $callback;
+        } else {
+            throw new SmartProblemException(
+                new SmartProblem(Response::HTTP_I_AM_A_TEAPOT, 'invalid_body_format', '$callback is not callable')
+            );
+        }
+    }
+
     /**
      * Runs `process` method of the SmartRequestRule and processors for every single field if exists
      *
      * @return void
      */
-    private function runProcessors()
+    private function dispatchExtraValidationMethods()
     {
-        $this->requestRule->process($this);
+        $this->requestRule->onValidationEnd($this);
 
         $validationMap = $this->requestRule->getValidationMap();
 
         foreach ($this->requestContent as $key => $value) {
+
+            $methodName = strtolower($key) . "Validation";
+
+            if (method_exists($this->requestRule, $methodName)) {
+
+                if(array_key_exists($key, $this->callbacks)) {
+                    $this->callbacks[$key]();
+                }
+
+                $this->requestRule->{$methodName}($this);
+            }
+
             if (isset($validationMap[$key]['processor'])) {
                 $processor = $validationMap[$key]['processor'];
 
@@ -290,32 +311,7 @@ class SmartRequest
         }
     }
 
-    /**
-     * Replaces the request parameter with the return value of the PHP callable
-     *
-     * @return void
-     */
-    private function runNormalizers()
-    {
-        $validationMap = $this->requestRule->getValidationMap();
 
-        foreach ($this->requestContent as $key => $value) {
-            if (isset($validationMap[$key]['normalizer'])) {
-                $normalizer = $validationMap[$key]['normalizer'];
-
-                if (!is_callable($normalizer)) {
-                    throw new \InvalidArgumentException(
-                        sprintf(
-                            'The "normalizer" option must be a valid callable ("%s" given).',
-                            is_object($normalizer) ? get_class($normalizer) : gettype($normalizer)
-                        )
-                    );
-                }
-
-                $this->requestContent[$key] = call_user_func($normalizer, $value);
-            }
-        }
-    }
 
     /**
      * @param Request $request
@@ -342,4 +338,6 @@ class SmartRequest
 
         return $content;
     }
+
+
 }

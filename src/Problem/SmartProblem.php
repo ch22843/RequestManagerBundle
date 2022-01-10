@@ -45,9 +45,7 @@ class SmartProblem
 
         if (null === $type) {
             $type  = 'about:blank';
-            $title =
-                isset(Response::$statusTexts[$statusCode]) ? Response::$statusTexts[$statusCode]
-                    : 'Unknown status code :(';
+            $title = Response::$statusTexts[$statusCode] ?? 'Unknown status code :(';
 
             if (null !== $originalTitle) {
                 $this->addExtraData('detail', $originalTitle);
