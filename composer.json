@@ -35,6 +35,6 @@
     "symfony/test-pack": "^1.0"
   },
   "scripts": {
-	"test": "vendor/bin/phpunit --colors --verbose --configuration /phpunit.xml"
+	"test": "vendor/bin/phpunit tests"
   }
 }
