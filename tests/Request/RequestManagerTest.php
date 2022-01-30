@@ -72,7 +72,7 @@ class RequestManagerTest extends TestCase
 
 		$data = $requestManager->validate(new SomeRequestRule());
 
-		$this->assertIsArray($data);
+		$this->assertIsString($data);
     }
 }
 
