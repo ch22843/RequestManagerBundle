@@ -7,17 +7,16 @@ namespace Devl0pr\RequestManagerBundle\Request;
  */
 abstract class AbstractRequestRule implements RequestRuleInterface
 {
-    /**
-     * @inheritdoc
-     */
-    public function onValidationStart(RequestManager $smartRequest)
+    public function setValidationMap($key, $value)
+    {
+        // TODO: Implement setValidationMap() method.
+    }
+
+    public function onValidationStart(RequestManager $requestManager)
     {
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function onValidationEnd(RequestManager $smartRequest)
+    public function onValidationEnd(RequestManager $requestManager)
     {
     }
 }

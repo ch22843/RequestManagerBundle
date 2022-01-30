@@ -1,12 +1,10 @@
 <?php
 
 /*
- * This file is part of the mesolaries/SmartApiBundle package.
- *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) Emil Manafov <mnf.emil@gmail.com>
+ * @copyright Copyright (c) Cavid Huseynov <dev22843@gmail.com>
  * @license http://opensource.org/licenses/MIT MIT
  */
 
@@ -23,7 +21,6 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
- * @author Emil Manafov <mnf.emil@gmail.com>
  * @author Cavid Huseynov <dev22843@gmail.com>
  */
 class RequestManager
@@ -71,6 +68,7 @@ class RequestManager
         RequestStack $requestStack,
         bool $isDebug
     ) {
+
         $this->isDebug          = $isDebug;
         $this->validator        = $validator;
         $this->propertyAccessor = $propertyAccessor;

@@ -23,11 +23,11 @@ interface RequestRuleInterface
      * Runs every time after validation succeeded.
      * Implementation of this method is optional.
      *
-     * @param RequestManager $smartRequest
+     * @param RequestManager $requestManager
      *
      * @return mixed
      */
-    public function onValidationStart(RequestManager $smartRequest);
+    public function onValidationStart(RequestManager $requestManager);
 
-    public function onValidationEnd(RequestManager $smartRequest);
+    public function onValidationEnd(RequestManager $requestManager);
 }

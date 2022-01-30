@@ -1,0 +1,17 @@
+version: '3.8'
+
+networks:
+  npp:
+
+services:
+  sphp2:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: cphp2
+    volumes:
+      - .:/var/www/code/public
+    ports:
+      - "9001:9001"
+    networks:
+      - npp

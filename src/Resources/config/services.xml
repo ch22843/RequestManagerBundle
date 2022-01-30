@@ -4,9 +4,10 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services
         http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
+
         <service id="devl0pr_request_manager.request.request_manager" class="Devl0pr\RequestManagerBundle\Request\RequestManager"
-                 public="false">
-            <argument type="service" id="validator"/>
+                 public="true">
+            <argument type="service" id="validator" />
             <argument type="service" id="property_accessor"/>
             <argument type="service" id="request_stack"/>
             <argument>%kernel.debug%</argument>
@@ -14,6 +15,20 @@
 
         <service id="Devl0pr\RequestManagerBundle\Request\RequestManager" alias="devl0pr_request_manager.request.request_manager"
                  public="false"/>
+
+
+        <service id="validator" class="Symfony\Component\Validator\Validator\ValidatorInterface" public="true">
+            <factory service="validator.builder" method="getValidator" />
+        </service>
+
+        <service id="validator.builder" class="Symfony\Component\Validator\ValidatorBuilder" />
+        <service id="property_accessor.builder" class="Symfony\Component\PropertyAccess\PropertyAccessorBuilder" />
+
+        <service id="property_accessor" class="Symfony\Component\PropertyAccess\PropertyAccessorInterface" public="true">
+            <factory service="property_accessor.builder" method="getPropertyAccessor" />
+        </service>
+
+        <service id="request_stack" class="Symfony\Component\HttpFoundation\RequestStack" public="true"/>
 
         <service id="devl0pr_request_manager.event_listener.smart_problem_exception_listener"
                  class="Devl0pr\RequestManagerBundle\EventListener\SmartProblemExceptionListener" public="false">
