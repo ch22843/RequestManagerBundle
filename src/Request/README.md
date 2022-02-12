@@ -20,20 +20,20 @@ How it works
 <a name="defining-a-requestrule"></a>
 ### Defining a RequestRule
 
-First of all you need to create a class which implements `Mesolaries\SmartApiBundle\Request\SmartRequestRuleInterface`
-or extends `Mesolaries\SmartApiBundle\Request\AbstractSmartRequestRule`.
+First of all you need to create a class which implements `Devl0pr\RequestManagerBundle\Request\RequestRuleInterface`
+or extends `Devl0pr\RequestManagerBundle\Request\AbstractRequestRule`.
 
 It'll require one mandatory and one optional method to implement.
 
 ```php
 <?php
 
-use Mesolaries\SmartApiBundle\Request\AbstractSmartRequestRule;
-use Mesolaries\SmartApiBundle\Request\SmartRequest;
+use Devl0pr\RequestManagerBundle\Request\AbstractRequestRule;
+use Devl0pr\RequestManagerBundle\Request\RequestManager;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Length;
 
-class SomeRequestRule extends AbstractSmartRequestRule
+class SomeRequestRule extends AbstractRequestRule
 {
     public function getValidationMap()
     {
@@ -43,8 +43,6 @@ class SomeRequestRule extends AbstractSmartRequestRule
                 'constraints' => [
                     new NotBlank(),
                 ],
-                'normalizer' => 'trim',
-                'processor' => [$this, 'nameProcessor'],
             ],
             'surname' => [
                 'constraints' => [
@@ -55,15 +53,16 @@ class SomeRequestRule extends AbstractSmartRequestRule
         ];
     }
 
-    public function process(SmartRequest $smartRequest)
+    public function onValidationEnd(RequestManager $requestManager)
     {
         // Optional method
         // Do some additional processing here if needed
     }
 
-    public function nameProcessor(SmartRequest $smartRequest)
+    public function nameValidation(RequestManager $requestManager)
     {
-        // Processor of the name field
+        // if you define [fieldName]Validation function it will be called automatically\
+        // e.g. you can add surnameValidation method either
     }
 }
 ```
@@ -75,26 +74,15 @@ Array keys here are the corresponding parameter keys in the request body content
     
     The request content will be validated against these values.
 
-- `processor` key is optional. 
-    
-    This is for additional processing (e.g. replacing raw value with the entity object) of this particular field if needed. 
-    It will be called after validation process.
-    
-    The value has to be a `callable`.
-    An instance of `SmartRequest` will be passed as an argument.
-- `normalizer` key is optional.
-    
-    This option allows to define the PHP callable applied to the given value.
 
-    For example, you may want to pass the 'trim' string to apply the `trim`
-    PHP function. It'll run after validation but before processors.
-    
-    _Note that the original request parameter will be replaced by the 
-    return value of the PHP callable._
 
-#### `process()` method:
+#### `onValidationStart()` method:
 This method is optional. 
-It will be called every time after successful validation of the request content.
+It will be called every time before validation of the request content.
+
+#### `onValidationEnd()` method:
+This method is optional.
+It will be called every time after validation of the request content.
 
 <a name="using-the-requestrule"></a>
 ### Using the RequestRule
@@ -104,7 +92,7 @@ After you've created a RequestRule let's use it in a controller:
 <?php
 
 use Symfony\Component\Routing\Annotation\Route;
-use Mesolaries\SmartApiBundle\Request\SmartRequest;
+use Devl0pr\RequestManagerBundle\Request\RequestManager;
 // Assuming that RequestRule was created in the src/RequestRule/ directory
 use App\RequestRule\SomeRequestRule;
 
@@ -113,17 +101,17 @@ class SomeController
     /**
      * @Route("/", name="app.index")
      */
-    public function index(SmartRequest $smartRequest, SomeRequestRule $requestRule)
+    public function index(RequestManager $requestManager, SomeRequestRule $requestRule)
     {
-        $requestContent = $smartRequest->comply($requestRule);
+        $requestContent = $smartRequest->validate($requestRule);
 
         // ...
     }
 }
 ```
 
-The code above will comply following request content with the given RequestRule (validate)
-and run all additional processing you've defined.
+The code above will validate following request content with the given RequestRule
+and run all additional methods (fieldNameValidation) you've defined.
 
 ```json
 {
@@ -139,13 +127,13 @@ which will be transformed into correct response.
 
 <a name="validating-without-requestrule"></a>
 ### Validating without RequestRule
-You can validate raw values from the any request bag using `validate()` method.
+You can validate raw values from the any request bag using `validateManual()` method.
 
 ```php
 <?php
 
 use Symfony\Component\Routing\Annotation\Route;
-use Mesolaries\SmartApiBundle\Request\SmartRequest;
+use Devl0pr\RequestManagerBundle\Request\RequestManager;
 use Symfony\Component\Validator\Constraints\Type;
 
 class SomeController
@@ -153,9 +141,9 @@ class SomeController
     /**
      * @Route("/", name="app.index")
      */
-    public function index(SmartRequest $smartRequest)
+    public function index(RequestManager $smartRequest)
     {
-        $page = $smartRequest->validate('page', [new Type('int')], 1);
+        $page = $smartRequest->validateManual('page', [new Type('int')], 1);
 
         // ...
     }
@@ -167,8 +155,6 @@ otherwise default value of `1` will be returned.
 
 If validation fails the `SmartProblemException` will be thrown 
 which will be transformed into correct response. 
-
-Note that you can't use `processor`s in this method.
 
 <a name="complex-request-structures"></a>
 ### Complex request structures
@@ -203,14 +189,14 @@ RequestRule:
 ```php
 <?php
 
-use Mesolaries\SmartApiBundle\Request\AbstractSmartRequestRule;
+use Devl0pr\RequestManagerBundle\Request\AbstractRequestRule;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\Type;
 use Symfony\Component\Validator\Constraints\All;
 use Symfony\Component\Validator\Constraints\Collection;
 
-class SomeRequestRule extends AbstractSmartRequestRule
+class SomeRequestRule extends AbstractRequestRule
 {
     public function getValidationMap()
     {
@@ -299,24 +285,22 @@ For example, you can add a value to the bag in the RequestRule:
 ```php
 <?php
 
-use Mesolaries\SmartApiBundle\Request\AbstractSmartRequestRule;
-use Mesolaries\SmartApiBundle\Request\SmartRequest;
+use Devl0pr\RequestManagerBundle\Request\AbstractRequestRule;
+use Devl0pr\RequestManagerBundle\Request\RequestManager;
 
-class SomeRequestRule extends AbstractSmartRequestRule
+class SomeRequestRule extends AbstractRequestRule
 {
     public function getValidationMap()
     {
         // ...
     }
 
-    public function process(SmartRequest $smartRequest)
+    public function onValidationEnd(RequestManager $requestManager)
     {
         // ...
         // Add to bag by key
-        $smartRequest->addToBag('foo', 'bar');
-        // Or you can set the whole bag as array
-        $smartRequest->setBag(['foo' => 'bar']);
-        // ...
+        $requestManager->addToBag('foo', 'bar');
+     
     }
 }
 ```
@@ -327,21 +311,18 @@ class SomeRequestRule extends AbstractSmartRequestRule
 <?php
 
 use Symfony\Component\Routing\Annotation\Route;
-use Mesolaries\SmartApiBundle\Request\SmartRequest;
+use Devl0pr\RequestManagerBundle\Request\RequestManager;
 
 class SomeController
 {
     /**
      * @Route("/", name="app.index")
      */
-    public function index(SmartRequest $smartRequest)
+    public function index(RequestManager $requestManager)
     {
         // ...
         // Retrieve a value by key
-        $foo = $smartRequest->getFromBag('foo');
-        // Or get the whole bag as array
-        $bag = $smartRequest->getBag();
-        // ...
+        $foo = $requestManager->getFromBag('foo'); //bar
     }
 }
 ```
