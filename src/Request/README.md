@@ -1,4 +1,4 @@
-SmartRequest Service
+RequestManager Service
 ============
 This service provides an easy validation process of the JSON requests and 
 any other user defined processing of request content.
@@ -103,7 +103,7 @@ class SomeController
      */
     public function index(RequestManager $requestManager, SomeRequestRule $requestRule)
     {
-        $requestContent = $smartRequest->validate($requestRule);
+        $requestContent = $requestManager->validate($requestRule);
 
         // ...
     }
@@ -141,9 +141,9 @@ class SomeController
     /**
      * @Route("/", name="app.index")
      */
-    public function index(RequestManager $smartRequest)
+    public function index(RequestManager $requestManager)
     {
-        $page = $smartRequest->validateManual('page', [new Type('int')], 1);
+        $page = $requestManager->validateManual('page', [new Type('int')], 1);
 
         // ...
     }
