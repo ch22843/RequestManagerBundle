@@ -49,9 +49,9 @@ class RequestManager
 
     private array $callbacks = [];
 
-    private array $requestContent = [];
+    private array $requestContent;
 
-    private array $originalContent = [];
+    private array $originalContent;
 
     private array $validationErrors = [];
 
@@ -63,26 +63,24 @@ class RequestManager
     private array $bag = [];
 
     public function __construct(
-        ValidatorInterface $validator,
-        PropertyAccessorInterface $propertyAccessor,
-        RequestStack $requestStack,
-        bool $isDebug
+            ValidatorInterface $validator,
+            PropertyAccessorInterface $propertyAccessor,
+            RequestStack $requestStack,
+            bool $isDebug
     ) {
-
-        $this->isDebug          = $isDebug;
-        $this->validator        = $validator;
+        $this->isDebug = $isDebug;
+        $this->validator = $validator;
         $this->propertyAccessor = $propertyAccessor;
-        $this->request          = $requestStack->getCurrentRequest();
-        $this->requestContent   = $this->originalContent = $this->parseRequestContent($this->request);
+        $this->request = $requestStack->getCurrentRequest();
+        $this->requestContent = $this->originalContent = $this->parseRequestContent($this->request);
     }
-
 
 
     /**
      * Validates request body content against defined constraints in the $requestRule.
      *
-     * @param RequestRuleInterface $requestRule Request rule to comply with
-     * @param bool                      $skipMissing Skip missing fields in the Request body content instead of
+     * @param  RequestRuleInterface  $requestRule    Request rule to comply with
+     * @param  bool                  $skipMissing    Skip missing fields in the Request body content instead of
      *                                               throwing an Exception
      *
      * @return array Request body content after all manipulations
@@ -93,13 +91,13 @@ class RequestManager
 
         $this->requestRule->onValidationStart($this);
 
-        $validationMap  = $this->requestRule->getValidationMap();
+        $validationMap = $this->requestRule->getValidationMap();
         $requestContent = $this->requestContent;
 
         if ($differ = array_diff_key($requestContent, $validationMap)) {
             if ($this->isDebug) {
                 $smartProblem =
-                    new SmartProblem(400, null, 'Undefined parameters were found in the request structure.');
+                        new SmartProblem(400, null, 'Undefined parameters were found in the request structure.');
                 $smartProblem->addExtraData('errors', $differ);
 
                 throw new SmartProblemException($smartProblem);
@@ -115,7 +113,9 @@ class RequestManager
                 } else {
                     if ($this->isDebug) {
                         $smartProblem =
-                            new SmartProblem(400, null, 'Required parameter was not found in the request structure.');
+                                new SmartProblem(
+                                        400, null, 'Required parameter was not found in the request structure.'
+                                );
                         $smartProblem->addExtraData('errors', $key);
 
                         throw new SmartProblemException($smartProblem);
@@ -138,9 +138,9 @@ class RequestManager
                     $this->validationErrors[$key] = [];
 
                     $this->propertyAccessor->setValue(
-                        $this->validationErrors[$key],
-                        $violations[0]->getPropertyPath(),
-                        $violations[0]->getMessage()
+                            $this->validationErrors[$key],
+                            $violations[0]->getPropertyPath(),
+                            $violations[0]->getMessage()
                     );
                 }
             }
@@ -158,18 +158,24 @@ class RequestManager
         return $this->requestContent;
     }
 
+
     /**
      * Validates the request parameters against a constraint or a list of constraints
      *
-     * @param string                  $key         Request parameter key
-     * @param Constraint|Constraint[] $constraints The constraint(s) to validate against
-     * @param null|mixed              $default     Default value if the Request parameter not found
+     * @param  string|array             $key          Request parameter key
+     * @param  Constraint|Constraint[]  $constraints  The constraint(s) to validate against
+     * @param  null|mixed               $default      Default value if the Request parameter not found
      *
-     * @return mixed|null Validated value from the Request
+     * @return mixed Validated value from the Request
      */
-    public function validateManual(string $key, $constraints, $default = null)
+    public function validateManual(string|array $key, $constraints, $default = null): mixed
     {
-        $value = $this->request->get($key, $default);
+        if (is_array($key)) {
+            $filters = $this->request->get($key[0], $default);
+            $value = $filters[$key[1]] ?: $default;
+        } else {
+            $value = $this->request->get($key, $default);
+        }
 
         $violations = $this->validator->validate($value, $constraints);
 
@@ -192,8 +198,8 @@ class RequestManager
     /**
      * Adds a new entry to the request body content or replaces an existing one
      *
-     * @param string $key   A parameter key of the request body content to add or replace
-     * @param mixed  $value A value for the selected key
+     * @param  string  $key    A parameter key of the request body content to add or replace
+     * @param  mixed   $value  A value for the selected key
      *
      * @return $this
      */
@@ -263,7 +269,7 @@ class RequestManager
             $this->callbacks[$fieldName] = $callback;
         } else {
             throw new SmartProblemException(
-                new SmartProblem(Response::HTTP_I_AM_A_TEAPOT, 'invalid_body_format', '$callback is not callable')
+                    new SmartProblem(Response::HTTP_I_AM_A_TEAPOT, 'invalid_body_format', '$callback is not callable')
             );
         }
     }
@@ -280,12 +286,10 @@ class RequestManager
         $validationMap = $this->requestRule->getValidationMap();
 
         foreach ($this->requestContent as $key => $value) {
-
-            $methodName = strtolower($key) . "Validation";
+            $methodName = strtolower($key)."Validation";
 
             if (method_exists($this->requestRule, $methodName)) {
-
-                if(array_key_exists($key, $this->callbacks)) {
+                if (array_key_exists($key, $this->callbacks)) {
                     $this->callbacks[$key]();
                 }
 
@@ -297,10 +301,10 @@ class RequestManager
 
                 if (!is_callable($processor)) {
                     throw new \InvalidArgumentException(
-                        sprintf(
-                            'The "processor" option must be a valid callable ("%s" given).',
-                            is_object($processor) ? get_class($processor) : gettype($processor)
-                        )
+                            sprintf(
+                                    'The "processor" option must be a valid callable ("%s" given).',
+                                    is_object($processor) ? get_class($processor) : gettype($processor)
+                            )
                     );
                 }
 
@@ -310,9 +314,8 @@ class RequestManager
     }
 
 
-
     /**
-     * @param Request $request
+     * @param  Request  $request
      *
      * @return array
      */
@@ -330,7 +333,7 @@ class RequestManager
 
         if (null === $content) {
             throw new SmartProblemException(
-                new SmartProblem(400, 'invalid_body_format', 'Invalid JSON format sent.')
+                    new SmartProblem(400, 'invalid_body_format', 'Invalid JSON format sent.')
             );
         }
 
