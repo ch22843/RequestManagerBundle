@@ -168,7 +168,7 @@ class RequestManager
      *
      * @return mixed Validated value from the Request
      */
-    public function validateManual(string|array $key, $constraints, $default = null): mixed
+    public function validateManual(string $key, $constraints, $default = null)
     {
         if (is_array($key)) {
             $filters = $this->request->get($key[0], $default);
