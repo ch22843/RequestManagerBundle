@@ -168,11 +168,19 @@ class RequestManager
      *
      * @return mixed Validated value from the Request
      */
-    public function validateManual(string $key, $constraints, $default = null)
+    public function validateManual($key, $constraints, $default = null)
     {
+        $errorKey = $key;
+
         if (is_array($key)) {
-            $filters = $this->request->get($key[0], $default);
-            $value = $filters[$key[1]] ?: $default;
+            $value = $default;
+            $errorKey = implode('_', $key);
+
+            $filters = $this->request->get($key[1]);
+
+            if (is_array($filters) && array_key_exists($key[0], $filters)) {
+                $value = $filters[$key[0]];
+            }
         } else {
             $value = $this->request->get($key, $default);
         }
@@ -183,7 +191,7 @@ class RequestManager
             $errors = [];
 
             foreach ($violations as $violation) {
-                $errors[$key][] = $violation->getMessage();
+                $errors[$errorKey][] = $violation->getMessage();
             }
 
             $smartProblem = new SmartProblem(400, 'validation_error', 'There was a validation error.');
